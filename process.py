@@ -45,7 +45,7 @@ def filter_relation_sets(params):
         head = id2token[head]
         tail = id2token[tail]
         relations = [ id2token[idx]  for idx in triplet_idx[1:-1] if idx in id2token ] 
-        if len(relations) > 0 and check_relations_validity(relations) and head not in invalid_relations and tail not in invalid_relations:
+        if len(relations) > 0 and check_relations_validity(relations) and head not in invalid_relations_set and tail not in invalid_relations_set:
             return {'h': head, 't': tail, 'r': relations, 'c': confidence }
     return {}
 
