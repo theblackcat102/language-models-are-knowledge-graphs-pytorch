@@ -7,7 +7,7 @@ The implemtation of Match is in process.py
 
 ![example bob dylan](https://raw.githubusercontent.com/theblackcat102/language-models-are-knowledge-graphs-pytorch/main/images/bob_dylan.png)
 
-### Execute Match section
+### Execute MAMA(Match and Map) section
 
 Do note the extracted results is still quite noisy and should then filtered based on relation unique pair frequency 
 
