@@ -69,8 +69,9 @@ if __name__ == '__main__':
                 for sent in nlp(sentence).sents:
                     for triplets in parse_sentence(sent.text, tokenizer, encoder, nlp, use_cuda=use_cuda):
                         valid_triplets.append(triplets)
+
+                if len(valid_triplets) > 0:
                     output = { 'line': idx, 'tri': valid_triplets }
                     if include_sentence:
                         output['sent'] = sentence
                     g.write(json.dumps( output )+'\n')
-                    g.flush()

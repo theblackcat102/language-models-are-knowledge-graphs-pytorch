@@ -31,9 +31,13 @@ def bfs(args):
 
 def check_relations_validity(relations):
     for rel in relations:
-        if rel in invalid_relations_set or rel.isnumeric():
+        if rel.lower() in invalid_relations_set or rel.isnumeric():
             return False
     return True
+
+def global_initializer(nlp_object):
+    global spacy_nlp
+    spacy_nlp = nlp_object
 
 def filter_relation_sets(params):
     triplet, id2token = params
@@ -44,19 +48,19 @@ def filter_relation_sets(params):
     if head in id2token and tail in id2token:
         head = id2token[head]
         tail = id2token[tail]
-        relations = [ id2token[idx]  for idx in triplet_idx[1:-1] if idx in id2token ] 
-        if len(relations) > 0 and check_relations_validity(relations) and head not in invalid_relations_set and tail not in invalid_relations_set:
+        relations = [ spacy_nlp(id2token[idx])[0].lemma_  for idx in triplet_idx[1:-1] if idx in id2token ]
+        if len(relations) > 0 and check_relations_validity(relations) and head.lower() not in invalid_relations_set and tail.lower() not in invalid_relations_set:
             return {'h': head, 't': tail, 'r': relations, 'c': confidence }
     return {}
 
 def parse_sentence(sentence, tokenizer, encoder, nlp, use_cuda=True):
     '''Implement the match part of MAMA
-    
+
     '''
     tokenizer_name = str(tokenizer.__str__)
 
     inputs, tokenid2word_mapping, token2id, noun_chunks  = create_mapping(sentence, return_pt=True, nlp=nlp, tokenizer=tokenizer)
-    
+
     with torch.no_grad():
         if use_cuda:
             for key in inputs.keys():
@@ -66,6 +70,9 @@ def parse_sentence(sentence, tokenizer, encoder, nlp, use_cuda=True):
     if 'GPT2' in tokenizer_name:
         trim  = False
 
+    '''
+    Use average of last layer attention : page 6, section 3.1.2
+    '''
     attention = process_matrix(outputs[2], avg_head=True, trim=trim, use_cuda=use_cuda)
 
     merged_attention = compress_attention(attention, tokenid2word_mapping)
@@ -75,8 +82,8 @@ def parse_sentence(sentence, tokenizer, encoder, nlp, use_cuda=True):
     for head in noun_chunks:
         for tail in noun_chunks:
             if head != tail:
-                tail_head_pairs.append((token2id[head], token2id[tail])) 
-   
+                tail_head_pairs.append((token2id[head], token2id[tail]))
+
     black_list_relation = set([ token2id[n]  for n in noun_chunks ])
 
     all_relation_pairs = []
@@ -87,9 +94,9 @@ def parse_sentence(sentence, tokenizer, encoder, nlp, use_cuda=True):
         for output in pool.imap_unordered(bfs, params):
             if len(output):
                 all_relation_pairs += [ (o, id2token) for o in output ]
-    
+
     triplet_text = []
-    with Pool(10) as pool:
+    with Pool(10, global_initializer, (nlp,)) as pool:
         for triplet in pool.imap_unordered(filter_relation_sets, all_relation_pairs):
             if len(triplet) > 0:
                 triplet_text.append(triplet)

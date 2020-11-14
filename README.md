@@ -16,6 +16,7 @@ Do note the extracted results is still quite noisy and should then filtered base
 python extract.py examples/bob_dylan.txt bert-large-cased-bob_dynlan.jsonl --language_model bert-large-cased --use_cuda true
 ```
 
+
 ### Environment setup
 
 
@@ -26,3 +27,4 @@ virtualenv -p python3 env
 source env/bin/activate
 pip install -r requirements.txt
 ```
+
