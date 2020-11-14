@@ -1,5 +1,6 @@
 import sys, os
 from process import parse_sentence
+from mapper import Map, deduplication
 from transformers import AutoTokenizer, BertModel, GPT2Model
 import argparse
 import en_core_web_md
@@ -28,6 +29,8 @@ parser.add_argument('--use_cuda', default=True,
 parser.add_argument('--include_text_output', default=False, 
                         type=str2bool, nargs='?',
                         help="Include original sentence in output")
+parser.add_argument('--threshold', default=0.003, 
+                        type=float, help="Any attention score lower than this is removed")
 
 args = parser.parse_args()
 
@@ -67,11 +70,26 @@ if __name__ == '__main__':
             if len(sentence):
                 valid_triplets = []
                 for sent in nlp(sentence).sents:
+                    # Match
                     for triplets in parse_sentence(sent.text, tokenizer, encoder, nlp, use_cuda=use_cuda):
                         valid_triplets.append(triplets)
-
                 if len(valid_triplets) > 0:
-                    output = { 'line': idx, 'tri': valid_triplets }
+                    # Map
+                    mapped_triplets = []
+                    for triplet in valid_triplets:
+                        head = triplet['h']
+                        tail = triplet['t']
+                        relations = triplet['r']
+                        conf = triplet['c']
+                        if conf < args.threshold:
+                            continue
+                        mapped_triplet = Map(head, relations, tail)
+                        if 'h' in mapped_triplet:
+                            mapped_triplet['c'] = conf
+                            mapped_triplets.append(mapped_triplet)
+                    output = { 'line': idx, 'tri': deduplication(mapped_triplets) }
+
                     if include_sentence:
                         output['sent'] = sentence
-                    g.write(json.dumps( output )+'\n')
+                    if len(output['tri']) > 0:
+                        g.write(json.dumps( output )+'\n')

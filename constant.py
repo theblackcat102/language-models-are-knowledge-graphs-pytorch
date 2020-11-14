@@ -12,8 +12,6 @@ found_invalid = [
 ]
 
 invalid_relations = [
-    'am', 'are', 'is', 'was', 'were', 'been', 'being', # be verb
-    'in', 'on', 'at', 'of', 'for', 'with', 'from',# preposition
     'and', 'but', 'or', 'so', 'because', 'when', 'before', 'although', # conjunction
     'oh', 'wow', 'ouch', 'ah', 'oops',
     'what', 'how', 'where', 'when', 'who', 'whom',
@@ -21,9 +19,29 @@ invalid_relations = [
     'them', 'he', 'she', 'him', 'her', 'it', # pronoun
     'ten', 'hundred', 'thousand', 'million', 'billion',# unit
     'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',# number
-    'has', 'have', 'been',
     'year', 'month', 'day', 'daily',
 ] + found_invalid
 
+
+
+
+auxiliaries = [
+    'be', 'can', 'have', 'dare', 'may', 'will', 'would', 'should', 
+    'need', 'ought', 'shall', 'might', 'do', 'does', 'did',
+    'be able to', 'had better','have to','need to','ought to','used to',
+]
+
+with open('corpus/english-adjectives.txt', 'r') as f:
+    adjectives = [ line.strip().lower() for line in f]
+
+with open('corpus/adverbs.txt', 'r') as f:
+    adverbs = [ line.strip().lower() for line in f]
+
+# with open('corpus/Wordlist-Verbs-All.txt', 'r') as f:
+#     verbs = [ line.strip().lower() for line in f]
+
+invalid_relations += adjectives
+invalid_relations += adverbs
+# invalid_relations += verbs
 
 invalid_relations_set = set(invalid_relations)
